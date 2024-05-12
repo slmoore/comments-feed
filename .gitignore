@@ -1,11 +1,28 @@
 /node_modules
 /coverage
 /build
+dist
+dist-ssr
+*.local
 
 database.sqlite3
 
-.DS_Store
-
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
