@@ -1,5 +1,13 @@
 {
   "compilerOptions": {
+    /* Simplify imports */
+    "baseUrl": ".",
+    "paths": {
+      "components/*": ["./src/components/*"],
+      "models/*": ["./src/models/*"],
+      "utils/*": ["./src/utils/*"]
+    },
+
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],

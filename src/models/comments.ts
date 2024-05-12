@@ -1,4 +1,6 @@
 /**
+ * Comment from Feed API
+ *
  * @note `created` is a Date string
  */
 export interface Comment {
