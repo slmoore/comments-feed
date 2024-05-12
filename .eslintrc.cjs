@@ -5,6 +5,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
+    'plugin:@tanstack/eslint-plugin-query/recommended',
   ],
   // @note - eslint warnings disabled for APIs
   ignorePatterns: ['dist', '.eslintrc.cjs', 'server', 'src/api'],

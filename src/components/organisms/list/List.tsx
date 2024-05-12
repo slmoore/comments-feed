@@ -1,8 +1,18 @@
 import Card from 'components/molecules/card';
-import { Comment } from 'models/comments';
+import { TempComment } from 'models/comments';
 import { ListItem, StyledList } from './styles';
 
-const List = ({ comments }: { comments: Comment[] }) => {
+const loading = 'Loading...';
+
+interface ListProps {
+  comments?: TempComment[];
+}
+
+const List = ({ comments }: ListProps) => {
+  if (!comments) {
+    return <div>{loading}</div>;
+  }
+
   return (
     <StyledList>
       {comments.map(item => (

@@ -18,6 +18,7 @@ export default defineConfig({
       components: '/src/components',
       models: '/src/models',
       utils: '/src/utils',
+      constants: '/src/constants',
     },
   },
 });
