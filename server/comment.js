@@ -18,18 +18,19 @@ class Comment {
     return this.dataAccessObject.run(sql);
   }
 
+  /**
+   * @note - run automatically sanitizes the input params to prevent SQL Injection
+   * @link - https://github.com/TryGhost/node-sqlite3/wiki/API#runsql--param---callback
+   */
   createComment({ name, message }) {
-    return this.dataAccessObject.run(
-      'INSERT INTO comments (name, message) VALUES (?, ?)',
-      [name, message]
-    );
+    return this.dataAccessObject.run('INSERT INTO comments (name, message) VALUES (?, ?)', [
+      name,
+      message,
+    ]);
   }
 
   getComment(id) {
-    return this.dataAccessObject.get(
-      'SELECT * FROM comments WHERE id = ?',
-      [id]
-    );
+    return this.dataAccessObject.get('SELECT * FROM comments WHERE id = ?', [id]);
   }
 
   getComments() {

@@ -1,8 +1,6 @@
 import Card from 'components/molecules/card';
 import { TempComment } from 'models/comments';
-import { ListItem, StyledList } from './styles';
-
-const loading = 'Loading...';
+import { ListItem, ListLoader, LoaderContainer, StyledList } from './styles';
 
 interface ListProps {
   comments?: TempComment[];
@@ -10,16 +8,22 @@ interface ListProps {
 
 const List = ({ comments }: ListProps) => {
   if (!comments) {
-    return <div>{loading}</div>;
+    return (
+      <LoaderContainer>
+        <ListLoader />
+      </LoaderContainer>
+    );
   }
 
   return (
     <StyledList>
-      {comments.map(item => (
-        <ListItem key={item.id}>
-          <Card comment={item} />
-        </ListItem>
-      ))}
+      {comments.map(item =>
+        item.name && item.message ? (
+          <ListItem key={item.id}>
+            <Card comment={item} />
+          </ListItem>
+        ) : null
+      )}
     </StyledList>
   );
 };

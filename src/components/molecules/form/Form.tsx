@@ -1,12 +1,23 @@
 import { UseMutateFunction } from '@tanstack/react-query';
+import Loader from 'components/atoms/loader';
 import { CreateComment, CreateCommentResponse } from 'models/comments';
-import { ChangeEventHandler, useCallback, useMemo, useState, type FormEventHandler } from 'react';
-import { StyledForm } from './styles';
+import {
+  ChangeEventHandler,
+  FocusEventHandler,
+  useCallback,
+  useMemo,
+  useState,
+  type FormEventHandler,
+} from 'react';
+import { sanitize } from 'utils/sanitize';
+import { Button, ErrorMessage, Label, Required, StyledForm, TextArea } from './styles';
 
 const strings = {
   comment: 'Comment',
   name: 'Name',
   message: 'Message',
+  nameError: 'Please remove special characters from Name',
+  messageError: 'Please remove special characters from Message',
 };
 
 interface FormProps {
@@ -17,15 +28,56 @@ interface FormProps {
 const Form = ({ createComment, isPending }: FormProps) => {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
+  const [isNameError, setIsNameError] = useState(false);
+  const [isMessageError, setIsMessageError] = useState(false);
   const isDisabled = useMemo(() => isPending || !(name && message), [isPending, name, message]);
+
+  const validate = useCallback(
+    (
+      name: string,
+      message: string
+    ): {
+      sanitizedName: string;
+      sanitizedMessage: string;
+    } => {
+      const sanitizedName = sanitize(name);
+      const sanitizedMessage = sanitize(message);
+      if (name && name !== sanitizedName) {
+        setIsNameError(true);
+      } else {
+        setIsNameError(false);
+      }
+
+      if (message && message !== sanitizedMessage) {
+        setIsMessageError(true);
+      } else {
+        setIsMessageError(false);
+      }
+
+      return {
+        sanitizedName,
+        sanitizedMessage,
+      };
+    },
+    []
+  );
 
   const onSubmit: FormEventHandler<HTMLFormElement> = useCallback(
     e => {
       e.preventDefault();
-      createComment({ name, message });
+      const { sanitizedName, sanitizedMessage } = validate(name, message);
+      if (sanitizedName && sanitizedMessage) {
+        createComment({ name: sanitizedName, message: sanitizedMessage });
+        setName('');
+        setMessage('');
+      }
     },
-    [message, createComment, name]
+    [validate, name, message, createComment]
   );
+
+  const onBlur: FocusEventHandler = useCallback(() => {
+    validate(name, message);
+  }, [name, message, validate]);
 
   const onChangeName: ChangeEventHandler<HTMLInputElement> = useCallback(
     e => {
@@ -41,19 +93,40 @@ const Form = ({ createComment, isPending }: FormProps) => {
     [setMessage]
   );
 
+  // ! then move on to unit tests -
+  // ! then return to other features on this application -
+
   return (
     <StyledForm onSubmit={onSubmit}>
-      <label htmlFor="name">
+      <Label htmlFor="name">
         {strings.name}
-        <input type="text" name="name" onChange={onChangeName} value={name} />
-      </label>
-      <label htmlFor="message">
+        <Required>*</Required>
+      </Label>
+      <input
+        type="text"
+        name="name"
+        onChange={onChangeName}
+        value={name}
+        onBlur={onBlur}
+        required
+      />
+      {isNameError ? <ErrorMessage>{strings.nameError}</ErrorMessage> : null}
+      <Label htmlFor="message">
         {strings.message}
-        <textarea name="message" id="message" onChange={onChangeMessage} value={message}></textarea>
-      </label>
-      <button type="submit" disabled={isDisabled}>
-        {isPending ? 'Loading...' : strings.comment}
-      </button>
+        <Required>*</Required>
+      </Label>
+      <TextArea
+        name="message"
+        id="message"
+        onChange={onChangeMessage}
+        value={message}
+        onBlur={onBlur}
+        required
+      ></TextArea>
+      {isMessageError ? <ErrorMessage>{strings.messageError}</ErrorMessage> : null}
+      <Button type="submit" disabled={isDisabled}>
+        {isPending ? <Loader /> : strings.comment}
+      </Button>
     </StyledForm>
   );
 };

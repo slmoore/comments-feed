@@ -11,6 +11,7 @@ import {
 import { GET_COMMENTS, POST_COMMENT } from 'constants/comments';
 import { requestGet, requestPost } from 'utils/request';
 import { useMemo } from 'react';
+import { Container } from './styles';
 
 const sortComments = (comments: Comment[]): Comment[] => {
   return [
@@ -22,7 +23,7 @@ const FeedContainer = () => {
   const queryClient = useQueryClient();
   const { data: comments, error: commentsError } = useQuery<Comment[]>({
     queryKey: [CacheKey.Comments],
-    // ! forced delay to immitate a slow network response
+    // ! forced delay to immitate a slow network response - move this to a utility for testing purposes only and add instructions in the README as to why it is being used
     queryFn: () =>
       new Promise(resolve => setTimeout(() => resolve(requestGet(GET_COMMENTS)), 2000)),
   });
@@ -66,10 +67,10 @@ const FeedContainer = () => {
   }, [comments, isCreatePending, attemptedComment]);
 
   return (
-    <div>
+    <Container>
       <Form createComment={createComment} isPending={isCreatePending} />
       <List comments={allComments} />
-    </div>
+    </Container>
   );
 };
 
