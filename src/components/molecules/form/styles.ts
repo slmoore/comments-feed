@@ -4,7 +4,6 @@ export const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
   min-width: 600px;
-  margin-bottom: 2rem;
 
   input,
   textarea {
@@ -36,6 +35,7 @@ export const Required = styled.span`
 `;
 
 export const Button = styled.button`
+  height: ${60 / 16}rem;
   color: white;
   font-size: 18px;
   font-weight: 900;

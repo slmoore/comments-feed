@@ -67,7 +67,16 @@ We recommend spending up to four hours on this assignment. If you don't get ever
 
 ```
 $ npm install
+
+# Run the application with a Fast network connection (service and DB response is instantaneous)
+
 $ npm run dev
+
+# Run the application with a Slow network connection (2 second delay)
+# Note, this experience emulates posting a comment and waiting for a slow response from the service.
+# It highlights the optimistic update UX that is provided in the Comment Feed experience for the Customer and the different request States that are available, for example, Loading, Success/Error.
+
+$ npm run dev:slow
 ```
 
 ### Visit http://localhost:5173/

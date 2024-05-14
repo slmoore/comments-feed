@@ -1,75 +1,100 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query';
 import Form from 'components/molecules/form/Form';
 import List from 'components/organisms/list';
+import { POST_COMMENT } from 'constants/comments';
 import {
   CacheKey,
   Comment,
   CreateComment,
   CreateCommentResponse,
-  TempComment,
+  DisplayComment,
 } from 'models/comments';
-import { GET_COMMENTS, POST_COMMENT } from 'constants/comments';
-import { requestGet, requestPost } from 'utils/request';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getComment, getComments, requestPost } from 'utils/request';
 import { Container } from './styles';
-
-const sortComments = (comments: Comment[]): Comment[] => {
-  return [
-    ...comments.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()),
-  ];
-};
+import { sortComments } from 'utils/format';
+import useHandleError from './hooks/useHandleError';
 
 const FeedContainer = () => {
-  const queryClient = useQueryClient();
+  const [isReady, setIsReady] = useState(false);
+  const [tempId, setTempId] = useState<number | undefined>();
+  const [displayComments, setDisplayComments] = useState<DisplayComment[]>([]);
+
+  // Fetch and cache the comments
   const { data: comments, error: commentsError } = useQuery<Comment[]>({
     queryKey: [CacheKey.Comments],
-    // ! forced delay to immitate a slow network response - move this to a utility for testing purposes only and add instructions in the README as to why it is being used
-    queryFn: () =>
-      new Promise(resolve => setTimeout(() => resolve(requestGet(GET_COMMENTS)), 2000)),
+    queryFn: () => getComments(),
   });
 
+  // Create a comment
   const {
+    data: createCommentResponse,
     mutate: createComment,
     isPending: isCreatePending,
     variables: attemptedComment,
+    isError: isCreateError,
+    isSuccess: isCreateSuccess,
+    error: createCommentError,
   } = useMutation<CreateCommentResponse, Error, CreateComment>({
     mutationFn: (comment: CreateComment) =>
       requestPost<CreateCommentResponse>(POST_COMMENT, comment),
-    onError: () => {
-      // ! show toast error message
-    },
-    onSuccess: async () => {
-      // invalidate the comments cache on success of adding a new comment forcing a fetch of new comments
-      return await queryClient.invalidateQueries({ queryKey: [CacheKey.Comments] });
-    },
     scope: {
       id: POST_COMMENT,
     },
   });
 
-  if (commentsError) {
-    // ! show a toast error
-    console.error('error fetching comments', commentsError);
-  }
+  // Fetch only the comment that was just created without invalidating the Comments cache
+  const { data: latestComment, error: latestCommentError } = useQuery<Comment>({
+    queryKey: [CacheKey.Comment, createCommentResponse?.id],
+    queryFn:
+      typeof createCommentResponse?.id === 'number'
+        ? () => getComment(createCommentResponse.id)
+        : skipToken,
+  });
 
-  const allComments: TempComment[] | undefined = useMemo(() => {
-    if (isCreatePending && attemptedComment) {
-      const temp: TempComment = {
+  const sortedComments: Comment[] | undefined = useMemo(
+    () => (comments ? sortComments(comments) : undefined),
+    [comments]
+  );
+
+  useHandleError({ commentsError, createCommentError, latestCommentError });
+
+  useEffect(() => {
+    if (sortedComments) {
+      setDisplayComments(sortedComments);
+      setIsReady(true);
+    }
+  }, [sortedComments]);
+
+  useEffect(() => {
+    if ((isCreatePending || isCreateError) && attemptedComment) {
+      const id = Date.now();
+      const temp: DisplayComment = {
         ...attemptedComment,
         created: new Date().toString(),
-        id: Date.now(),
+        id,
         isTemp: true,
+        isError: isCreateError,
       };
-      return comments ? [temp, ...sortComments(comments)] : [temp];
+      setTempId(id);
+      setDisplayComments(current => [temp, ...current]);
     }
+  }, [attemptedComment, isCreateError, isCreatePending]);
 
-    return comments ? sortComments(comments) : comments;
-  }, [comments, isCreatePending, attemptedComment]);
+  useEffect(() => {
+    if (isCreateSuccess && latestComment && typeof tempId === 'number') {
+      setDisplayComments(current => [
+        { ...latestComment, isSuccess: true },
+        ...current.filter(item => item.id !== tempId),
+      ]);
+      setTempId(undefined);
+    }
+  }, [isCreateSuccess, latestComment, tempId]);
 
   return (
     <Container>
       <Form createComment={createComment} isPending={isCreatePending} />
-      <List comments={allComments} />
+      <List comments={displayComments} isReady={isReady} />
     </Container>
   );
 };

@@ -10,8 +10,10 @@ export interface Comment {
   created: string;
 }
 
-export interface TempComment extends Comment {
+export interface DisplayComment extends Comment {
   isTemp?: boolean;
+  isSuccess?: boolean;
+  isError?: boolean;
 }
 
 export interface CreateComment extends Omit<Comment, 'id' | 'created'> {}
@@ -22,4 +24,5 @@ export interface CreateCommentResponse {
 
 export enum CacheKey {
   Comments = 'Comments',
+  Comment = 'Comment',
 }

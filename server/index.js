@@ -24,9 +24,13 @@ app.post('/createComment', function (request, response) {
   });
 });
 
+/**
+ * @note the `window.fetch` API does not allow a GET request to have a body.
+ * The `id` in the `request.body` has been moved to a `query` parameter.
+ * @link https://github.com/whatwg/fetch/issues/551
+ */
 app.get('/getComment', function (request, response) {
-  const { body } = request;
-  const { id } = body;
+  const { id } = request.query;
   comment.getComment(id).then(result => {
     response.send(result);
   });

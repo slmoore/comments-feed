@@ -93,9 +93,6 @@ const Form = ({ createComment, isPending }: FormProps) => {
     [setMessage]
   );
 
-  // ! then move on to unit tests -
-  // ! then return to other features on this application -
-
   return (
     <StyledForm onSubmit={onSubmit}>
       <Label htmlFor="name">
@@ -108,6 +105,7 @@ const Form = ({ createComment, isPending }: FormProps) => {
         onChange={onChangeName}
         value={name}
         onBlur={onBlur}
+        maxLength={50}
         required
       />
       {isNameError ? <ErrorMessage>{strings.nameError}</ErrorMessage> : null}
@@ -121,6 +119,7 @@ const Form = ({ createComment, isPending }: FormProps) => {
         onChange={onChangeMessage}
         value={message}
         onBlur={onBlur}
+        maxLength={1000}
         required
       ></TextArea>
       {isMessageError ? <ErrorMessage>{strings.messageError}</ErrorMessage> : null}

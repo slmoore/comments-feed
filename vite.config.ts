@@ -21,4 +21,7 @@ export default defineConfig({
       constants: '/src/constants',
     },
   },
+  define: {
+    'process.env': process.env,
+  },
 });

@@ -1,17 +1,30 @@
 import Card from 'components/molecules/card';
-import { TempComment } from 'models/comments';
-import { ListItem, ListLoader, LoaderContainer, StyledList } from './styles';
+import { DisplayComment } from 'models/comments';
+import { EmptyMessageIcon, ListItem, ListLoader, StyledList, Wrapper } from './styles';
 
 interface ListProps {
-  comments?: TempComment[];
+  comments: DisplayComment[];
+  isReady: boolean;
 }
 
-const List = ({ comments }: ListProps) => {
-  if (!comments) {
+const emptyList = 'There are no comments yet!';
+
+const List = ({ comments, isReady }: ListProps) => {
+  if (!isReady) {
     return (
-      <LoaderContainer>
+      <Wrapper>
         <ListLoader />
-      </LoaderContainer>
+      </Wrapper>
+    );
+  }
+
+  if (!comments.length) {
+    return (
+      <Wrapper>
+        <EmptyMessageIcon />
+        <br />
+        {emptyList}
+      </Wrapper>
     );
   }
 
