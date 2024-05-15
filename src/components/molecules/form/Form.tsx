@@ -102,6 +102,7 @@ const Form = ({ createComment, isPending }: FormProps) => {
       <input
         type="text"
         name="name"
+        id="name"
         onChange={onChangeName}
         value={name}
         onBlur={onBlur}
