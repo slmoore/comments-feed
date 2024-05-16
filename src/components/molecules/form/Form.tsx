@@ -30,7 +30,10 @@ const Form = ({ createComment, isPending }: FormProps) => {
   const [message, setMessage] = useState('');
   const [isNameError, setIsNameError] = useState(false);
   const [isMessageError, setIsMessageError] = useState(false);
-  const isDisabled = useMemo(() => isPending || !(name && message), [isPending, name, message]);
+  const isDisabled = useMemo(
+    () => isPending || !(name && message) || isMessageError || isNameError,
+    [isPending, name, message, isMessageError, isNameError]
+  );
 
   const validate = useCallback(
     (

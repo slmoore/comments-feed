@@ -19,6 +19,8 @@ const FeedContainer = () => {
   const [isReady, setIsReady] = useState(false);
   const [tempId, setTempId] = useState<number | undefined>();
   const [displayComments, setDisplayComments] = useState<DisplayComment[]>([]);
+  const [listening, setListening] = useState(false);
+  const [incomingCommentId, setIncomingCommentId] = useState<number | undefined>();
 
   // Fetch and cache the comments
   const { data: comments, error: commentsError } = useQuery<Comment[]>({
@@ -45,10 +47,10 @@ const FeedContainer = () => {
 
   // Fetch only the comment that was just created without invalidating the Comments cache
   const { data: latestComment, error: latestCommentError } = useQuery<Comment>({
-    queryKey: [CacheKey.Comment, createCommentResponse?.id],
+    queryKey: [CacheKey.Comment, createCommentResponse?.id || incomingCommentId],
     queryFn:
-      typeof createCommentResponse?.id === 'number'
-        ? () => getComment(createCommentResponse.id)
+      typeof createCommentResponse?.id === 'number' || typeof incomingCommentId === 'number'
+        ? () => getComment((createCommentResponse?.id || incomingCommentId) as number)
         : skipToken,
   });
 
@@ -56,6 +58,19 @@ const FeedContainer = () => {
     () => (comments ? sortComments(comments) : undefined),
     [comments]
   );
+
+  useEffect(() => {
+    if (!listening) {
+      const events = new EventSource('http://localhost:3001/subscribeToCreatedComments');
+
+      events.onmessage = event => {
+        const parsedData: { id: number } = JSON.parse(event.data);
+        setIncomingCommentId(parsedData.id);
+      };
+
+      setListening(true);
+    }
+  }, [listening]);
 
   useHandleError({ commentsError, createCommentError, latestCommentError });
 
@@ -82,6 +97,18 @@ const FeedContainer = () => {
   }, [attemptedComment, isCreateError, isCreatePending]);
 
   useEffect(() => {
+    if (
+      typeof incomingCommentId === 'number' &&
+      incomingCommentId !== createCommentResponse?.id &&
+      latestComment
+    ) {
+      setDisplayComments(current => [
+        { ...latestComment, isSuccess: true },
+        ...current.filter(item => item.id !== incomingCommentId),
+      ]);
+      return;
+    }
+
     if (isCreateSuccess && latestComment && typeof tempId === 'number') {
       setDisplayComments(current => [
         { ...latestComment, isSuccess: true },
@@ -89,7 +116,7 @@ const FeedContainer = () => {
       ]);
       setTempId(undefined);
     }
-  }, [isCreateSuccess, latestComment, tempId]);
+  }, [createCommentResponse?.id, incomingCommentId, isCreateSuccess, latestComment, tempId]);
 
   return (
     <Container>
